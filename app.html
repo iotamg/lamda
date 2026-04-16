@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Learning - Learn</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="bg-blob" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div class="brand-title">AI Learning</div>
+        </div>
+        <div class="btn-row" style="margin: 0; justify-content: flex-end">
+          <button class="btn btn-ghost" type="button" id="signOutBtn">
+            Sign out
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="layout">
+        <aside class="sidebar">
+          <div class="card panel" style="padding: 14px">
+            <div class="muted" style="font-weight: 800; letter-spacing: -0.02em; margin-bottom: 10px">
+              Your path
+            </div>
+            <nav class="nav-list" aria-label="Learning navigation">
+              <button class="nav-item" type="button" data-nav="overview" data-active="true">
+                <span style="font-weight: 800">Overview</span>
+                <span class="muted" style="font-size: 12px">Next up</span>
+              </button>
+              <button class="nav-item" type="button" data-nav="courses" data-active="false">
+                <span style="font-weight: 800">Courses</span>
+                <span class="muted" style="font-size: 12px">3</span>
+              </button>
+              <button class="nav-item" type="button" data-nav="practice" data-active="false">
+                <span style="font-weight: 800">Practice</span>
+                <span class="muted" style="font-size: 12px">Daily</span>
+              </button>
+              <button class="nav-item" type="button" data-nav="challenges" data-active="false">
+                <span style="font-weight: 800">Challenges</span>
+                <span class="muted" style="font-size: 12px">New</span>
+              </button>
+            </nav>
+          </div>
+        </aside>
+
+        <section style="min-width: 0">
+          <div class="panel-header">
+            <div>
+              <div class="title" style="font-size: 26px">Good to see you, <span id="userName">Learner</span>.</div>
+              <div class="subtitle">Today's goal: keep it light, keep it consistent.</div>
+            </div>
+          </div>
+
+          <div class="section" style="padding-top: 14px">
+            <div class="grid-2 fade-in">
+              <div class="kpi">
+                <strong id="streakValue">7</strong>
+                <span>Day streak</span>
+              </div>
+              <div class="kpi">
+                <strong id="xpValue">420</strong>
+                <span>Learning XP</span>
+              </div>
+            </div>
+
+            <div class="lesson-wrap" style="margin-top: 16px">
+              <div class="card panel card-strong fade-in" id="nextLessonCard">
+                <div class="panel-header" style="margin-bottom: 12px">
+                  <div>
+                    <h2 class="lesson-title">Next lesson: "Prompting that actually works"</h2>
+                    <div class="lesson-meta">
+                      6 min | Micro-lesson + 2 quick exercises
+                    </div>
+                  </div>
+                  <div style="min-width: 160px; text-align: right">
+                    <div class="muted" style="font-size: 12px; font-weight: 900">Progress</div>
+                    <div class="progress" aria-label="Lesson progress">
+                      <div id="lessonProgress" style="--w: 48%"></div>
+                    </div>
+                    <div class="muted" style="font-size: 12px; margin-top: 6px; font-weight: 800">
+                      48% complete
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px">
+                  <span class="badge" style="background: rgba(255, 255, 255, 0.72)">Beginner-friendly</span>
+                  <span class="badge" style="background: rgba(255, 255, 255, 0.72)">Practical examples</span>
+                  <span class="badge" style="background: rgba(255, 255, 255, 0.72)">Instant feedback</span>
+                </div>
+
+                <div class="btn-row" style="margin-top: 8px">
+                  <button class="btn btn-primary" id="continueBtn" type="button">
+                    Continue lesson
+                    <span aria-hidden="true" style="font-weight: 900">-></span>
+                  </button>
+                  <button class="btn btn-ghost" id="saveBtn" type="button">
+                    Save for later
+                  </button>
+                </div>
+              </div>
+
+              <div class="card panel fade-in">
+                <div class="muted" style="font-weight: 900; letter-spacing: -0.02em">Quick actions</div>
+                <div style="height: 12px"></div>
+                <div style="display: grid; gap: 10px">
+                  <button class="btn btn-ghost" type="button" id="startPracticeBtn">
+                    Start 5-min practice
+                  </button>
+                  <button class="btn btn-ghost" type="button" id="viewChallengesBtn">
+                    View today's challenge
+                  </button>
+                </div>
+                <p class="hint" style="margin: 14px 0 0 0">
+                  Prototype: everything is simulated (no backend yet).
+                </p>
+              </div>
+            </div>
+
+            <div class="card panel fade-in" style="margin-top: 16px">
+              <div class="panel-header">
+                <div>
+                  <div class="muted" style="font-weight: 900; letter-spacing: -0.02em">
+                    Section
+                  </div>
+                  <div class="title" style="font-size: 22px; margin-top: 4px" id="sectionTitle">
+                    Overview
+                  </div>
+                </div>
+                <div class="muted" id="sectionSubtitle" style="font-weight: 800">A quick snapshot</div>
+              </div>
+
+              <div id="panel-overview" data-panel="overview" class="fade-in" style="margin-top: 14px">
+                <div class="grid-2">
+                  <div class="kpi">
+                    <strong>2</strong>
+                    <span>Lessons completed</span>
+                  </div>
+                  <div class="kpi">
+                    <strong>3</strong>
+                    <span>Exercises remaining</span>
+                  </div>
+                </div>
+                <p class="hint" style="margin-top: 14px">
+                  Keep the momentum: do one short lesson, then finish with a tiny practice session.
+                </p>
+              </div>
+
+              <div id="panel-courses" data-panel="courses" class="fade-in" hidden style="margin-top: 14px">
+                <div style="display: grid; gap: 12px">
+                  <div class="card panel" style="padding: 16px">
+                    <div style="display: flex; justify-content: space-between; gap: 12px">
+                      <div>
+                        <div style="font-weight: 900; letter-spacing: -0.02em">Course: Foundations</div>
+                        <div class="lesson-meta">Prompts, structure, and iteration</div>
+                      </div>
+                      <div class="badge">
+                        <span style="font-weight: 900">8</span>
+                        <span class="muted" style="font-weight: 800">lessons</span>
+                      </div>
+                    </div>
+                    <div style="height: 10px"></div>
+                    <div class="progress">
+                      <div style="--w: 30%"></div>
+                    </div>
+                  </div>
+                  <div class="card panel" style="padding: 16px">
+                    <div style="display: flex; justify-content: space-between; gap: 12px">
+                      <div>
+                        <div style="font-weight: 900; letter-spacing: -0.02em">Course: Builders</div>
+                        <div class="lesson-meta">Workflows, checklists, evaluation</div>
+                      </div>
+                      <div class="badge">
+                        <span style="font-weight: 900">6</span>
+                        <span class="muted" style="font-weight: 800">lessons</span>
+                      </div>
+                    </div>
+                    <div style="height: 10px"></div>
+                    <div class="progress">
+                      <div style="--w: 55%"></div>
+                    </div>
+                  </div>
+                </div>
+                <p class="hint" style="margin-top: 14px">
+                  Next: we'll turn these cards into real course pages + lesson player.
+                </p>
+              </div>
+
+              <div id="panel-practice" data-panel="practice" class="fade-in" hidden style="margin-top: 14px">
+                <div style="display: grid; gap: 12px">
+                  <div class="card panel" style="padding: 16px">
+                    <div style="font-weight: 900; letter-spacing: -0.02em">Practice: Rewrite for clarity</div>
+                  <div class="lesson-meta">10 prompts | 1 rubric | instant suggestions</div>
+                    <div style="height: 10px"></div>
+                    <button class="btn btn-primary" type="button" style="width: 100%" id="practiceCTA">
+                      Start practice
+                    <span aria-hidden="true" style="font-weight: 900">-></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="panel-challenges" data-panel="challenges" class="fade-in" hidden style="margin-top: 14px">
+                <div style="display: grid; gap: 12px">
+                  <div class="card panel" style="padding: 16px">
+                    <div style="font-weight: 900; letter-spacing: -0.02em">Challenge: The 60-second tutor</div>
+                    <div class="lesson-meta">Explain a concept in a tiny prompt</div>
+                    <div style="height: 10px"></div>
+                    <button class="btn btn-ghost" type="button" id="challengeCTA">
+                      View details
+                    </button>
+                  </div>
+                </div>
+                <p class="hint" style="margin-top: 14px">
+                  Later, we'll add timed sessions and feedback loops.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script type="module">
+      import { requireAuth, clearAuth, getAuth } from "./auth.js";
+
+      const auth = requireAuth({
+        redirectTo: "sign-in.html",
+        reason: "Please sign in to keep learning.",
+      });
+      const user = getAuth() || auth;
+
+      const userName = document.getElementById("userName");
+      if (userName && user?.name) userName.textContent = user.name;
+
+      const toastEl = document.getElementById("toast");
+      function toast(message) {
+        toastEl.textContent = message;
+        toastEl.style.display = "block";
+        setTimeout(() => {
+          toastEl.style.display = "none";
+        }, 2200);
+      }
+
+      const signOutBtn = document.getElementById("signOutBtn");
+      signOutBtn?.addEventListener("click", () => {
+        clearAuth();
+        window.location.replace("./sign-in.html");
+      });
+
+      // Nav switching (simple UI prototype).
+      const navButtons = Array.from(document.querySelectorAll("[data-nav]"));
+      const panels = Array.from(document.querySelectorAll("[data-panel]"));
+      const sectionTitle = document.getElementById("sectionTitle");
+      const sectionSubtitle = document.getElementById("sectionSubtitle");
+
+      const metaByPanel = {
+        overview: { title: "Overview", subtitle: "A quick snapshot" },
+        courses: { title: "Courses", subtitle: "Pick your next path" },
+        practice: { title: "Practice", subtitle: "Short, focused reps" },
+        challenges: { title: "Challenges", subtitle: "Tiny wins, big growth" },
+      };
+
+      function setActive(panelKey) {
+        navButtons.forEach((b) => {
+          const active = b.getAttribute("data-nav") === panelKey;
+          b.setAttribute("data-active", active ? "true" : "false");
+        });
+        panels.forEach((p) => {
+          const active = p.getAttribute("data-panel") === panelKey;
+          p.hidden = !active;
+        });
+        const meta = metaByPanel[panelKey] || metaByPanel.overview;
+        sectionTitle.textContent = meta.title;
+        sectionSubtitle.textContent = meta.subtitle;
+      }
+
+      navButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const key = btn.getAttribute("data-nav");
+          setActive(key);
+        });
+      });
+
+      // CTA buttons.
+      document.getElementById("continueBtn")?.addEventListener("click", () => {
+        toast("Lesson player coming next. For now, enjoy the dashboard!");
+      });
+      document.getElementById("saveBtn")?.addEventListener("click", () => {
+        toast("Saved! We'll pick up where you left off.");
+      });
+      document.getElementById("startPracticeBtn")?.addEventListener("click", () => {
+        setActive("practice");
+        toast("Practice loaded.");
+      });
+      document.getElementById("viewChallengesBtn")?.addEventListener("click", () => {
+        setActive("challenges");
+        toast("Challenges ready.");
+      });
+      document.getElementById("practiceCTA")?.addEventListener("click", () => {
+        toast("Practice session coming next (simulated).");
+      });
+      document.getElementById("challengeCTA")?.addEventListener("click", () => {
+        toast("Challenge details coming next (simulated).");
+      });
+    </script>
+  </body>
+</html>
+
