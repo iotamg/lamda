@@ -110,6 +110,11 @@ body[dir="rtl"] .hero-badges {
   gap: 12px;
 }
 
+.brand-link {
+  text-decoration: none;
+  color: inherit;
+}
+
 .logo {
   width: 42px;
   height: 42px;
@@ -126,6 +131,17 @@ body[dir="rtl"] .hero-badges {
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(6px);
+}
+
+.logo-image {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 16px 45px rgba(96, 165, 250, 0.18);
+  padding: 4px;
+  flex: 0 0 auto;
 }
 
 .brand-title {
@@ -343,6 +359,32 @@ input:focus {
   margin-bottom: 12px;
 }
 
+.question-copy {
+  padding: 0 0 12px 0;
+  line-height: 1.8;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.question-answer {
+  width: 100%;
+  min-height: 108px;
+  resize: vertical;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(11, 18, 32, 0.10);
+  background: rgba(255, 255, 255, 0.82);
+  outline: none;
+  font: inherit;
+  line-height: 1.7;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset;
+}
+
+.question-answer:focus {
+  border-color: rgba(96, 165, 250, 0.55);
+  box-shadow: 0 0 0 6px var(--ring);
+}
+
 .question-placeholder {
   min-height: 68px;
   border-radius: 18px;
@@ -393,6 +435,65 @@ input:focus {
 
 .onboarding-card {
   width: min(860px, 100%);
+}
+
+.video-placeholder {
+  margin-top: 22px;
+  min-height: 260px;
+  border-radius: 28px;
+  border: 1px dashed rgba(11, 18, 32, 0.14);
+  background:
+    linear-gradient(135deg, rgba(96, 165, 250, 0.12), rgba(167, 139, 250, 0.12)),
+    rgba(255, 255, 255, 0.62);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.video-icon {
+  width: 74px;
+  height: 74px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 16px auto;
+  font-size: 28px;
+  color: white;
+  background: linear-gradient(135deg, var(--accentA), var(--accentB));
+  box-shadow: 0 18px 45px rgba(96, 165, 250, 0.22);
+}
+
+.rating-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+body[dir="rtl"] .rating-row {
+  flex-direction: row-reverse;
+}
+
+.rating-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  min-height: 58px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(11, 18, 32, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.rating-chip input {
+  display: none;
+}
+
+.rating-chip:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(96, 165, 250, 0.30);
 }
 
 .toast {

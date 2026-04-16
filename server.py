@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import html
+import json
 import secrets
 import sqlite3
 from datetime import datetime, timedelta, timezone
@@ -15,6 +16,7 @@ from urllib.parse import parse_qs, urlencode, urlparse
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / "site.db"
 STYLES_PATH = BASE_DIR / "styles.css"
+LOGO_PATH = Path("/home/yotam/.cursor/projects/home-yotam-WebSite/assets/20362c54-fe69-4f4f-a35d-28249bc5cc76-ebd49472-7226-4c48-81c2-ce39fe3758ef.png")
 SESSION_COOKIE = "ailearn_session"
 SESSION_DAYS = 30
 
@@ -49,6 +51,21 @@ def init_db() -> None:
                 token TEXT NOT NULL UNIQUE,
                 expires_at TEXT NOT NULL,
                 created_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS onboarding_responses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL UNIQUE,
+                question_1 TEXT NOT NULL DEFAULT '',
+                question_2 TEXT NOT NULL DEFAULT '',
+                question_3 TEXT NOT NULL DEFAULT '',
+                question_4 TEXT NOT NULL DEFAULT '',
+                question_5 TEXT NOT NULL DEFAULT '',
+                question_6 TEXT NOT NULL DEFAULT '',
+                learning_styles_json TEXT NOT NULL DEFAULT '[]',
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
             """
@@ -139,10 +156,10 @@ def page_layout(*, title: str, body: str, user=None) -> str:
     <main class="page">
       <header class="topbar">
         <div class="container topbar-inner">
-          <div class="brand">
-            <div class="logo" aria-hidden="true"></div>
+          <a class="brand brand-link" href="/" aria-label="מעבר לעמוד הראשי">
+            <img class="logo-image" src="/logo.png" alt="לוגו Lamda למדא" />
             <div class="brand-title">Lamda למדא</div>
-          </div>
+          </a>
           {nav}
         </div>
       </header>
@@ -276,26 +293,27 @@ def render_onboarding_page(user, message: str = "") -> str:
 
           <div class="panel" style="padding-top: 0">
             {alert}
-            <div class="card form" style="margin-bottom: 16px">
-              <div class="question-title">שאלה 1</div>
-              <div class="question-placeholder"></div>
-            </div>
-            <div class="questions-grid">
-              <div class="card form"><div class="question-title">שאלה 2</div><div class="question-placeholder"></div></div>
-              <div class="card form"><div class="question-title">שאלה 3</div><div class="question-placeholder"></div></div>
-              <div class="card form"><div class="question-title">שאלה 4</div><div class="question-placeholder"></div></div>
-              <div class="card form"><div class="question-title">שאלה 5</div><div class="question-placeholder"></div></div>
-              <div class="card form"><div class="question-title">שאלה 6</div><div class="question-placeholder"></div></div>
-            </div>
-
-            <div class="card form" style="margin-top: 16px">
-              <div class="question-title">איך אתה מעדיף ללמוד?</div>
-              <div class="btn-row" style="margin-top: 16px">
-                <a class="btn btn-primary btn-large" href="/onboarding/check">אני רוצה לבדוק!</a>
+            <form method="post" action="/onboarding">
+              <div class="card form" style="margin-bottom: 16px">
+                <div class="question-title">שאלה 1</div>
+                <div class="question-copy">כשכן הצלחת להבין נושא מורכב, האם זה קרה בזמן קריאת טקסט 📖 או תוך כדי צפייה בהסבר ויזואלי? 🎥</div>
+                <textarea class="question-answer" name="question_1" placeholder="כתוב כאן את התשובה שלך..."></textarea>
+              </div>
+              <div class="questions-grid">
+                <div class="card form"><div class="question-title">שאלה 2</div><div class="question-copy">כמה דקות חולפות מתחילת הלמידה עד לרגע שבו העיניים שלך עוזבות את החומר לטובת גירוי חיצוני? ⏱️</div><textarea class="question-answer" name="question_2" placeholder="כתוב כאן את התשובה שלך..."></textarea></div>
+                <div class="card form"><div class="question-title">שאלה 3</div><div class="question-copy">האם הגעת לתוצאות טובות יותר לאחר פתרון 20 שאלות קצרות ⚡ או לאחר העמקה ב-3 שאלות מורכבות? 🏗️</div><textarea class="question-answer" name="question_3" placeholder="כתוב כאן את התשובה שלך..."></textarea></div>
+                <div class="card form"><div class="question-title">שאלה 4</div><div class="question-copy">כדי להתקדם, האם אתה בודק את התשובה הנכונה אחרי כל סעיף 🚩 או רק בסיום המשימה כולה? 🏁</div><textarea class="question-answer" name="question_4" placeholder="כתוב כאן את התשובה שלך..."></textarea></div>
+                <div class="card form"><div class="question-title">שאלה 5</div><div class="question-copy">כשלא הצלחת להבין מושג, האם עברת לנושא הבא וחזרת אליו מאוחר יותר 🔄 או שנשארת עליו עד לפיצוח? 🛠️</div><textarea class="question-answer" name="question_5" placeholder="כתוב כאן את התשובה שלך..."></textarea></div>
+                <div class="card form"><div class="question-title">שאלה 6</div><div class="question-copy">האם למידה אפקטיבית עבורך כוללת שתיקיה מוחלטת בחדר 🤫 או האזנה למוזיקה/רעש רקע בזמן העבודה? 🎧</div><textarea class="question-answer" name="question_6" placeholder="כתוב כאן את התשובה שלך..."></textarea></div>
               </div>
 
-              <form method="post" action="/onboarding" style="margin-top: 18px">
-                <div class="choice-list">
+              <div class="card form" style="margin-top: 16px">
+                <div class="question-title">איך אתה מעדיף ללמוד?</div>
+                <div class="btn-row" style="margin-top: 16px">
+                  <a class="btn btn-primary btn-large" href="/onboarding/check">אני רוצה לבדוק!</a>
+                </div>
+
+                <div class="choice-list" style="margin-top: 18px">
                   <label class="choice-card"><input type="checkbox" name="learning_style" value="animation_videos" /> <span>סרטוני אנימציה 🎬</span></label>
                   <label class="choice-card"><input type="checkbox" name="learning_style" value="movies_series" /> <span>סרטים וסדרות 🍿</span></label>
                   <label class="choice-card"><input type="checkbox" name="learning_style" value="songs_stories" /> <span>שירים וסיפורים מוקלטים 🎧</span></label>
@@ -305,8 +323,8 @@ def render_onboarding_page(user, message: str = "") -> str:
                 <div class="btn-row" style="margin-top: 18px">
                   <button class="btn btn-ghost" type="submit">המשך</button>
                 </div>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         </section>
       </div>
@@ -322,8 +340,24 @@ def render_check_page(user) -> str:
             <h1 class="title">מעולה, {escape(user["name"])}!</h1>
             <p class="subtitle">
               בחרת במסלול של בדיקה מהירה.<br />
-              בהמשך נחבר כאן עמוד בדיקה ייעודי.
+              כאן יהיה אזור לצפייה בסרטון קצר ואז לתת לעצמך פידבק.
             </p>
+            <div class="video-placeholder">
+              <div class="video-icon">▶</div>
+              <div class="question-title" style="margin-bottom: 6px">מקום לסרטון</div>
+              <div class="hint" style="margin-top: 0">כרגע זה רק אזור תצוגה ולא סרטון פעיל.</div>
+            </div>
+            <div class="card form" style="margin-top: 18px; text-align: right">
+              <div class="question-title">כמה למדת?</div>
+              <div class="hint" style="margin-top: 0; margin-bottom: 14px">בחר דירוג בין 1 ל־5</div>
+              <div class="rating-row" aria-label="דירוג למידה">
+                <label class="rating-chip"><input type="radio" name="learned_rating" /> <span>1</span></label>
+                <label class="rating-chip"><input type="radio" name="learned_rating" /> <span>2</span></label>
+                <label class="rating-chip"><input type="radio" name="learned_rating" /> <span>3</span></label>
+                <label class="rating-chip"><input type="radio" name="learned_rating" /> <span>4</span></label>
+                <label class="rating-chip"><input type="radio" name="learned_rating" /> <span>5</span></label>
+              </div>
+            </div>
             <div class="btn-row" style="justify-content: center; margin-top: 18px">
               <form method="post" action="/onboarding/complete" style="margin: 0">
                 <button class="btn btn-primary" type="submit">סיום והמשך לאתר</button>
@@ -485,6 +519,12 @@ class AIWebsiteHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
+        if path == "/logo.png":
+            self.send_response(200 if LOGO_PATH.exists() else 404)
+            self.send_header("Content-Type", "image/png")
+            self.end_headers()
+            return
+
         self.send_error(404, "Page not found")
 
     def do_GET(self) -> None:
@@ -493,6 +533,9 @@ class AIWebsiteHandler(BaseHTTPRequestHandler):
 
         if path == "/styles.css":
             return self.serve_styles()
+
+        if path == "/logo.png":
+            return self.serve_logo()
 
         if path == "/":
             user = self.current_user()
@@ -654,6 +697,52 @@ class AIWebsiteHandler(BaseHTTPRequestHandler):
         user = self.current_user()
         if not user:
             return self.redirect("/login?" + urlencode({"message": "יש להתחבר קודם"}))
+        content_length = int(self.headers.get("Content-Length", "0"))
+        raw = self.rfile.read(content_length).decode("utf-8")
+        form = parse_qs(raw)
+
+        responses = {
+            "question_1": form.get("question_1", [""])[0].strip(),
+            "question_2": form.get("question_2", [""])[0].strip(),
+            "question_3": form.get("question_3", [""])[0].strip(),
+            "question_4": form.get("question_4", [""])[0].strip(),
+            "question_5": form.get("question_5", [""])[0].strip(),
+            "question_6": form.get("question_6", [""])[0].strip(),
+        }
+        learning_styles = [value.strip() for value in form.get("learning_style", []) if value.strip()]
+
+        now = utc_now().isoformat()
+        with db() as conn:
+            conn.execute(
+                """
+                INSERT INTO onboarding_responses (
+                    user_id, question_1, question_2, question_3, question_4, question_5, question_6,
+                    learning_styles_json, created_at, updated_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(user_id) DO UPDATE SET
+                    question_1=excluded.question_1,
+                    question_2=excluded.question_2,
+                    question_3=excluded.question_3,
+                    question_4=excluded.question_4,
+                    question_5=excluded.question_5,
+                    question_6=excluded.question_6,
+                    learning_styles_json=excluded.learning_styles_json,
+                    updated_at=excluded.updated_at
+                """,
+                (
+                    user["id"],
+                    responses["question_1"],
+                    responses["question_2"],
+                    responses["question_3"],
+                    responses["question_4"],
+                    responses["question_5"],
+                    responses["question_6"],
+                    json.dumps(learning_styles, ensure_ascii=False),
+                    now,
+                    now,
+                ),
+            )
         return self.complete_onboarding(redirect_to="/app")
 
     def complete_onboarding(self, redirect_to: str = "/app") -> None:
@@ -670,6 +759,16 @@ class AIWebsiteHandler(BaseHTTPRequestHandler):
         payload = STYLES_PATH.read_bytes()
         self.send_response(200)
         self.send_header("Content-Type", "text/css; charset=utf-8")
+        self.send_header("Content-Length", str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
+
+    def serve_logo(self) -> None:
+        if not LOGO_PATH.exists():
+            return self.send_error(404, "logo.png not found")
+        payload = LOGO_PATH.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", "image/png")
         self.send_header("Content-Length", str(len(payload)))
         self.end_headers()
         self.wfile.write(payload)
