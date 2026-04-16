@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Math Catcher - Expert Algebra</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --accent: #e94560;
+            --text: #e2e2e2;
+            --player-color: #4cc9f0;
+            --powerup-color: #fca311;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 30px;
+            margin: 0;
+        }
+
+        h1 {
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+        }
+
+        #game-container {
+            position: relative;
+            background-color: var(--card-bg);
+            border: 3px solid var(--player-color);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        #ui-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            padding: 0 10px;
+        }
+
+        #score-level-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        #level-display {
+            font-size: 16px;
+            color: #4cc9f0;
+        }
+
+        #equation {
+            color: var(--accent);
+            font-size: 22px; /* הוקטן מעט כדי להכיל משוואות ארוכות */
+            font-family: 'Courier New', Courier, monospace; /* פונט שמתאים למתמטיקה */
+            font-weight: bold;
+        }
+
+        #powerup-status {
+            height: 24px;
+            color: var(--powerup-color);
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 18px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+
+        canvas {
+            background-color: #0f172a;
+            display: block;
+            border-radius: 5px;
+        }
+
+        #game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            z-index: 10;
+        }
+
+        #game-over-screen.hidden { display: none; }
+        #game-over-screen h2 { font-size: 36px; color: var(--accent); margin-bottom: 10px; }
+        #final-score-text { font-size: 24px; margin-bottom: 30px; }
+
+        #game-over-screen button {
+            background-color: var(--player-color);
+            color: #1a1a2e;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+        #game-over-screen button:hover {
+            background-color: #72d9f7;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+<h1>Math Catcher - Expert Mode</h1>
+
+<div id="game-container">
+    <div id="ui-header">
+        <div id="score-level-container">
+            <span id="score">ניקוד: 0</span>
+            <span id="level-display">שלב: 1</span>
+        </div>
+        <span id="equation">טוען...</span>
+        <span id="lives">חיים: 3</span>
+    </div>
+
+    <div id="powerup-status"></div>
+
+    <canvas id="mathCanvas" width="550" height="400"></canvas>
+
+    <div id="game-over-screen" class="hidden">
+        <h2>המשחק נגמר!</h2>
+        <p id="final-score-text">ניקוד סופי: 0</p>
+        <button onclick="restartGame()">שחק שוב ↻</button>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('mathCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const basePlayerWidth = 80;
+    let player = { x: 235, y: 360, width: basePlayerWidth, height: 20, color: '#4cc9f0', speed: 6 };
+
+    let fallingItems = [];
+    let score = 0;
+    let lives = 3;
+    let currentAnswer = 0;
+    let gameActive = true;
+
+    let level = 1;
+    let baseFallSpeed = 1.5;
+    let spawnDelay = 1800;   // האטתי קצת את הקצב ההתחלתי כי השאלות קשות יותר
+    let spawnerTimeout;
+
+    // הסרנו את ה-slowTimer. נשאר רק ההרחבה.
+    let expandTimer = 0;
+
+    const keys = { ArrowLeft: false, ArrowRight: false };
+
+
+        function generateEquation() {
+            // הגדלנו את ההגרלה ל-4 סוגי שאלות (0 עד 3)
+            const questionType = Math.floor(Math.random() * 4);
+
+            if (questionType === 0) {
+                // 1. מתמטיקה בסיסית (כפל)
+                const num1 = Math.floor(Math.random() * 10) + 1;
+                const num2 = Math.floor(Math.random() * 10) + 1;
+                currentAnswer = num1 * num2;
+                document.getElementById('equation').innerText = `${num1} × ${num2} = ?`;
+
+            } else if (questionType === 1) {
+                // 2. משוואה ריבועית (מציאת השורש)
+                const root1 = Math.floor(Math.random() * 5) + 1;
+                const root2 = Math.floor(Math.random() * 5) + 1;
+                const b = root1 + root2;
+                const c = root1 * root2;
+                currentAnswer = root1;
+                document.getElementById('equation').innerText = `x² - ${b}x + ${c} = 0  (x=?)`;
+
+            } else if (questionType === 2) {
+                // 3. חדו"א - מציאת ה-x של נקודת המינימום
+                const a = Math.floor(Math.random() * 6) + 1;
+                currentAnswer = a;
+                document.getElementById('equation').innerText = `ה-x המינימלי: x² - ${2 * a}x`;
+
+            } else {
+                // 4. חדו"א מתקדם - נגזרת של פונקציה מעריכית בנקודה x=0
+                // נייצר פונקציה מהצורה: f(x) = A*e^(Bx) + Cx
+                const A = Math.floor(Math.random() * 4) + 1;
+                const B = Math.floor(Math.random() * 3) + 1;
+                const C = Math.floor(Math.random() * 6) + 1;
+
+                // חישוב התשובה מאחורי הקלעים:
+                // הנגזרת היא: f'(x) = A*B*e^(Bx) + C
+                // כשמציבים x=0 מקבלים: f'(0) = A*B*1 + C
+                currentAnswer = (A * B) + C;
+
+                // נציג את זה לשחקן בצורה ברורה
+                document.getElementById('equation').innerText = `f(x)=${A}e^${B}x + ${C}x ➔ f'(0)=?`;
+            }
+        }
+    function spawnItem() {
+        if (!gameActive) return;
+
+        // 10% סיכוי לכוח מיוחד (עכשיו זה רק 'expand')
+        if (Math.random() < 0.10) {
+            fallingItems.push({
+                isPowerup: true,
+                type: 'expand',
+                icon: '⭐',
+                x: Math.random() * (canvas.width - 40) + 20,
+                y: 0,
+                radius: 18,
+                speed: baseFallSpeed + 0.5
+            });
+        } else {
+            // יצירת תשובות. אנחנו מוודאים שהמספר המזויף קרוב לתשובה האמיתית
+            const isCorrect = Math.random() > 0.4; // 40% סיכוי לתשובה שגויה, 60% לנכונה
+            let value = isCorrect ? currentAnswer : currentAnswer + Math.floor(Math.random() * 7) - 3;
+
+            // מניעת מצב שהתשובה השגויה זהה בטעות לנכונה או יורדת מתחת לאפס (כי התשובות שלנו תמיד חיוביות)
+            if (value === currentAnswer && !isCorrect) value += 2;
+            if (value < 0) value = Math.abs(value) + 1;
+
+            fallingItems.push({
+                isPowerup: false,
+                value: value,
+                x: Math.random() * (canvas.width - 40) + 20,
+                y: 0,
+                radius: 20,
+                speed: baseFallSpeed + Math.random() * 1.5
+            });
+        }
+
+        spawnerTimeout = setTimeout(spawnItem, spawnDelay);
+    }
+
+    function update() {
+        if (!gameActive) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // טיפול בהרחבת הסל
+        if (expandTimer > 0) {
+            expandTimer--;
+            player.width = basePlayerWidth * 2;
+            if (expandTimer === 0) {
+                player.width = basePlayerWidth;
+                document.getElementById('powerup-status').innerText = '';
+            }
+        }
+
+        // תנועה
+        if (keys.ArrowLeft && player.x > 0) player.x -= player.speed;
+        if (keys.ArrowRight && player.x + player.width < canvas.width) player.x += player.speed;
+
+        // ציור
+        ctx.fillStyle = expandTimer > 0 ? '#fca311' : player.color;
+        ctx.beginPath();
+        ctx.roundRect(player.x, player.y, player.width, player.height, 5);
+        ctx.fill();
+
+        for (let i = 0; i < fallingItems.length; i++) {
+            let item = fallingItems[i];
+            item.y += item.speed; // הוסרה ההשפעה של הכוח המאיט
+
+            if (item.isPowerup) {
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(item.icon, item.x, item.y);
+            } else {
+                ctx.fillStyle = '#e94560';
+                ctx.beginPath();
+                ctx.arc(item.x, item.y, item.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 18px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(item.value, item.x, item.y);
+            }
+
+            // התנגשויות
+            let hitX = item.x > player.x && item.x < player.x + player.width;
+            let hitY = item.y + item.radius > player.y && item.y < player.y + player.height;
+
+            if (hitX && hitY) {
+                if (item.isPowerup) {
+                    expandTimer = 300;
+                    document.getElementById('powerup-status').innerText = '⭐ סל מורחב! ⭐';
+                } else {
+                    if (item.value === currentAnswer) {
+                        score += 10;
+
+                        if (score > 0 && score % 50 === 0) {
+                            level++;
+                            document.getElementById('level-display').innerText = `שלב: ${level}`;
+                            baseFallSpeed += 0.3;
+                            spawnDelay = Math.max(800, spawnDelay - 150);
+                        }
+
+                        document.getElementById('score').innerText = `ניקוד: ${score}`;
+                        generateEquation();
+                    } else {
+                        lives--;
+                        document.getElementById('lives').innerText = `חיים: ${lives}`;
+                        if (lives <= 0) gameOver();
+                    }
+                }
+                fallingItems.splice(i, 1);
+                i--;
+            }
+            else if (item.y > canvas.height) {
+                fallingItems.splice(i, 1);
+                i--;
+            }
+        }
+
+        requestAnimationFrame(update);
+    }
+
+    function gameOver() {
+        gameActive = false;
+        clearTimeout(spawnerTimeout);
+        document.getElementById('final-score-text').innerText = `ניקוד סופי: ${score} (הגעת לשלב ${level})`;
+        document.getElementById('game-over-screen').classList.remove('hidden');
+    }
+
+    function restartGame() {
+        score = 0;
+        lives = 3;
+        level = 1;
+        baseFallSpeed = 1.5;
+        spawnDelay = 1800;
+        fallingItems = [];
+        player.x = 235;
+        player.width = basePlayerWidth;
+        expandTimer = 0;
+        gameActive = true;
+
+        document.getElementById('score').innerText = `ניקוד: ${score}`;
+        document.getElementById('level-display').innerText = `שלב: ${level}`;
+        document.getElementById('lives').innerText = `חיים: ${lives}`;
+        document.getElementById('powerup-status').innerText = '';
+        document.getElementById('game-over-screen').classList.add('hidden');
+
+        generateEquation();
+        clearTimeout(spawnerTimeout);
+        spawnItem();
+        update();
+    }
+
+    window.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft') keys.ArrowLeft = true;
+        if (e.key === 'ArrowRight') keys.ArrowRight = true;
+    });
+
+    window.addEventListener('keyup', e => {
+        if (e.key === 'ArrowLeft') keys.ArrowLeft = false;
+        if (e.key === 'ArrowRight') keys.ArrowRight = false;
+    });
+
+    generateEquation();
+    spawnItem();
+    update();
+</script>
+</body>
+</html>
